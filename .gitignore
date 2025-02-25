@@ -1,0 +1,9 @@
+flask-auth-venv/
+# python cache files
+__pycache__/ 
+*.pyc
+*.pyo
+
+#database files
+*.sqlite3
+database.db
