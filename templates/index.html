@@ -1,0 +1,38 @@
+{% extends "base.html" %} {% block body %}
+
+  <header>Login or Signup</header>
+  <div class="container">
+    <form action="">
+      <div>
+        <label for="username">Username</label>
+        <input type="text" name="username" placeholder="Username" id="username" required>
+        <!-- <div>class="error-username"</div> -->
+      </div>
+
+      <div>
+        <label for="email">Email</label>
+        <input type="text" name="email" placeholder="Email" class="input-field" required>
+        <!-- <div>class="error-email"</div> -->
+      </div>
+
+      <div>
+        <label for="password">Password</label>
+        <input type="password" name="password" placeholder="Password" class="input-field" required>
+        <!-- <div>class="error-password"</div> -->
+      </div>
+
+      <div>
+        <label for="password2">Confirm password</label>
+        <input type="password2" name="password2" placeholder="Confirm password" class="input-field" required>
+        <!-- <div>class="error-password2"</div> -->
+      </div>
+
+      <div>
+        <input type="submit" value="Sign Up" class="btn btn-dark btn-lg">
+      </div>
+      
+    </form>
+  </div>
+    
+{% endblock %}
+    
