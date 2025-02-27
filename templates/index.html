@@ -1,14 +1,9 @@
 {% extends "base.html" %} {% block body %}
 
-  <header>Login or Signup</header>
+  <header>Login</header>
   <div class="container">
-    <form action="">
-      <div>
-        <label for="username">Username</label>
-        <input type="text" name="username" placeholder="Username" id="username" required>
-        <!-- <div>class="error-username"</div> -->
-      </div>
-
+    <form id="login-form" action="{{ url_for('login') }}" method="POST">
+     
       <div>
         <label for="email">Email</label>
         <input type="text" name="email" placeholder="Email" class="input-field" required>
@@ -22,15 +17,11 @@
       </div>
 
       <div>
-        <label for="password2">Confirm password</label>
-        <input type="password2" name="password2" placeholder="Confirm password" class="input-field" required>
-        <!-- <div>class="error-password2"</div> -->
-      </div>
-
-      <div>
-        <input type="submit" value="Sign Up" class="btn btn-dark btn-lg">
+        <input type="submit" value="Log in" class="btn btn-dark btn-lg">
       </div>
       
+      <!-- add signup button to take user to register.html -->
+
     </form>
   </div>
     

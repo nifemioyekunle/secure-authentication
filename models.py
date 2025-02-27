@@ -1,4 +1,4 @@
-from main import db # imports the database from main.py
+from database import db # imports the database from database.py
 import bcrypt
 
 #  creating database model
