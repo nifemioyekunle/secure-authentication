@@ -20,7 +20,7 @@ db.init_app(app) # inits the database based on Flask app name
 def home():
   if "username" in session: #checks if the user is logged in
     return  redirect(url_for("dashboard")) #redirects to the dashboard of the logged in user
-  return render_template("index.html")
+  return render_template("index.html") 
 
 # login route
 @app.route("/login", methods=["POST"])
@@ -33,13 +33,13 @@ def login():
   
 #checks database for if info exists
   existing_user = User.query.filter_by(email=email).first() 
-  if existing_user and existing_user.password == password:
+  if existing_user and existing_user.check_password(password): #!CHANGE WAS HERE 
     #redirects to dashboard if info exists
     session["email"] = email
     return redirect(url_for("dashboard"))
   else:
     #redirects to register if info does not exist
-    return redirect(url_for("register"))
+    return render_template("register", error="Account does not exist")
 
 
 # register route
@@ -57,7 +57,10 @@ def register():
     return render_template("index", error="Account already exists")
   else:
     #if user isnt already in db create new user
-    new_user = User(email=email, username=username, password=password)
+    new_user = User(email=email, username=username) #!CHANGE WAS HERE
+    
+    #sets password
+    new_user.set_password(password) #!CHANGE WAS HERE
     
     #stores user in database
     db.session.add(new_user) 
