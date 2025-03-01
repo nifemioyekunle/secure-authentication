@@ -1,8 +1,9 @@
-from flask import Flask, render_template, session, request, redirect, url_for
+from flask import Flask, render_template, session, request, redirect, url_for, jsonify
 from database import db
-from models import User
+from models import User, bcrypt
 
 app = Flask(__name__) #creates a Flask app
+app.secret_key = "neo_from_the_matrix" 
 
 #we have to configure the database
 
@@ -13,14 +14,17 @@ app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False #False so it does not track
 # initializing database
 db.init_app(app) # inits the database based on Flask app name
 
+#initialise bcrypt (password hasher)
+bcrypt.init_app(app)
+
 # routing (routes)
 
 #home route
 @app.route("/") # sets the route 
 def home():
   if "username" in session: #checks if the user is logged in
-    return  redirect(url_for("dashboard")) #redirects to the dashboard of the logged in user
-  return render_template("index.html") 
+    return  redirect(url_for("dashboard")) #redirects to the dashboard route of the logged in user
+  return render_template("index.html") #returns the index.html template
 
 # login route
 @app.route("/login", methods=["POST"])
@@ -28,18 +32,20 @@ def login():
 # collects info from form
   data = request.json
   # username = data["username"]
-  email= data["email"]
+  email = data["email"]
   password = data["password"]
   
 #checks database for if info exists
   existing_user = User.query.filter_by(email=email).first() 
-  if existing_user and existing_user.check_password(password): #!CHANGE WAS HERE 
+  if existing_user and existing_user.check_password(password): 
     #redirects to dashboard if info exists
     session["email"] = email
-    return redirect(url_for("dashboard"))
+    return jsonify({"success": "Login successful"}), 200
+    # return redirect(url_for("dashboard")) #!!!
   else:
-    #redirects to register if info does not exist
-    return render_template("register", error="Account does not exist")
+    #redirects to register page if info does not exist
+    return render_template("register.html", error="Account does not exist")
+    # return jsonify({"error": "Account does not exist"}), 400 #!!!
 
 
 # register route
@@ -48,19 +54,19 @@ def register():
 #collects info from form
   data = request.json
   username = data["username"]
-  email= data["email"]
+  email = data["email"]
   password = data["password"]
   
   # checks if user already exists
   existing_user = User.query.filter_by(email=email).first()
   if existing_user:
-    return render_template("index", error="Account already exists")
+    return jsonify({"error": "Account already exists"}), 400
+    # return render_template("index.html", error="Account already exists") #!!!
   else:
     #if user isnt already in db create new user
-    new_user = User(email=email, username=username) #!CHANGE WAS HERE
-    
+    new_user = User(email=email, username=username)
     #sets password
-    new_user.set_password(password) #!CHANGE WAS HERE
+    new_user.set_password(password)
     
     #stores user in database
     db.session.add(new_user) 
@@ -68,7 +74,8 @@ def register():
     
     #opens a session and redirects to dashboard
     session["email"] = email 
-    return redirect(url_for("dashboard"))
+    # return redirect(url_for("dashboard")) #!!!
+    return jsonify({"success": "Account created"}), 200 
 
 
 # dashboard route

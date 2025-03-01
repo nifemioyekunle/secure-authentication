@@ -1,5 +1,8 @@
 from database import db # imports the database from database.py
-import bcrypt
+# import bcrypt 
+from flask_bcrypt import Bcrypt
+
+bcrypt = Bcrypt()
 
 #  creating database model
 class User(db.Model): #inherits from db.Model
@@ -7,7 +10,7 @@ class User(db.Model): #inherits from db.Model
   # database columns
   id = db.Column(db.Integer, primary_key=True)
   username = db.Column(db.String(25), unique=True, nullable=False)
-  email_address = db.Column(db.String(100), unique=True, nullable=False)
+  email = db.Column(db.String(100), unique=True, nullable=False)
   password = db.Column(db.String(100), nullable=False)
   
   #Hash passwrod before its stored in the database
@@ -25,9 +28,14 @@ class User(db.Model): #inherits from db.Model
 
   #Hash passwrod before its stored in the database
   def set_password(self, password):
-    hashed_password = bcrypt.hashpw(password.encode("utf-8"),  bcrypt.gensalt())
-    self.password = hashed_password.decode("utf-8")
+    # hashed_password = bcrypt.hashpw(password.encode("utf-8"),  bcrypt.gensalt()) #! OLD METHOD
+    # self.password = hashed_password.decode("utf-8")
+    
+    hashed_password = bcrypt.generate_password_hash(password.encode("utf-8")) # takes encoded password and returns hashed password
+    hashed_password_string = hashed_password.decode("utf-8") # decodes hashed password to string
+    self.password = hashed_password_string # sets hashed password in database 
     
   #checks if password in login input is correct
   def check_password(self, password):
-    return bcrypt.checkpw(password.encode("utf-8"), self.password.encode)
+    return bcrypt.check_password_hash(self.password.encode("utf-8"), password.encode("utf-8")) #checks if password is correct
+  #compares password in login input to password in database

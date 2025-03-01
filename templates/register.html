@@ -4,7 +4,7 @@
 
 <header>Sign Up</header>
   <div class="container">
-    <form action="">
+    <form id="register-form" action="{{ url_for('register') }} method="POST">
       <div>
         <label for="username">Username</label>
         <input type="text" name="username" placeholder="Username" id="username" required>
@@ -34,6 +34,9 @@
       </div>
       
       <!-- add log in button to take user to index.html -->
+       <div>
+        <a href="/"><button>Log In</button></a>
+       </div>
 
 
     </form>
