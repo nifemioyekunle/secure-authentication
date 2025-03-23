@@ -2,7 +2,9 @@ from flask import Flask, render_template, session, request, redirect, url_for, j
 from database import db
 from models import User, bcrypt
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required, get_jwt
-from datetime import timedelta
+from datetime import timedelta, datetime
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 
 app = Flask(__name__) #creates a Flask app
 
@@ -29,6 +31,9 @@ bcrypt.init_app(app)
 #initialise JWT
 jwt = JWTManager(app)
 
+#initialise limiter
+limiter = Limiter(get_remote_address, app=app, default_limits=["5 per minute"]) #limits the number of requests to 5 per minute
+
 # ROUTING (routes)
 
 #home route
@@ -38,8 +43,11 @@ def home():
     return  redirect(url_for("dashboard")) #redirects to the dashboard route of the logged in user
   return render_template("index.html") #returns the index.html template
 
+
+failed_login_attempts = {} #dictionary to store failed login attempts
 # login route
 @app.route("/login", methods=["POST"])
+@limiter.limit("5 per minute") #limits the number of login attempts to 5 per minute
 def login():
 # collects info from form
   data = request.json
@@ -47,10 +55,20 @@ def login():
   email = data["email"]
   password = data["password"]
   
+#checks if user has attempted to login more than 5 times (already in failed_login_attempts dictionary)
+  if email in failed_login_attempts:
+    failed_login_attempts[email] = attempts, lock_time  
+    if attempts >= 5 and datetime.now() < lock_time:
+      return jsonify({"error": "Too many failed login attempts. Please try again later."}), 400
+    elif datetime.now() > lock_time:
+      failed_login_attempts[email] = (0, datetime.now())
+  
 #checks database for if info exists
   existing_user = User.query.filter_by(email=email).first() 
-  if existing_user and existing_user.check_password(password): 
-
+  if existing_user and existing_user.check_password(password):
+    
+    failed_login_attempts[email] = (0, datetime.now()) #resets failed login attempts to 0 if user logs in successfully
+    
     access_token = create_access_token(identity=existing_user.id) #creates access token for user if user exists
     refresh_token =create_access_token(identity=existing_user.id, fresh=False) #false because it is not a new token
     session["email"] = email
@@ -58,9 +76,14 @@ def login():
     return jsonify({"access_token": access_token, "refresh_token": refresh_token}), 200
     # return redirect(url_for("dashboard")) #redirects to dashboard if info exists #!!!    
   else:
-    #redirects to register page if info does not exist
-    return jsonify({"error": "Account does not exist"}), 400 
-    # return render_template("register.html", error="Account does not exist") #!!!
+    attempts, lock_time = failed_login_attempts.get(email, (0, datetime.now()))
+    failed_login_attempts[email] = (attempts + 1, datetime.now() + timedelta(minutes=5))
+  
+    return jsonify({"error": "Invalid email or password"}), 400
+  #redirects to register page if info does not exist
+    # return render_template("register.html", error="Account does not exist") #!!
+  
+
 
 
 # register route
